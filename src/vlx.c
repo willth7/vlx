@@ -42,7 +42,6 @@ struct vlx_context {
 	VkFence fnc;
 	VkFormat img_frmt;
 	VkFormat txtr_frmt;
-
 };
 
 struct vlx_surface {
@@ -206,7 +205,7 @@ struct vlx_command* vlx_command_create(struct vlx_context* cntx) {
 	return cmd;
 }
 
-void vlx_render_pass_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
+void vlx_surface_init_render_pass(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	VkAttachmentDescription atch[2];
 		atch[0].flags = 0;
 		atch[0].format = cntx->img_frmt;
@@ -256,7 +255,7 @@ void vlx_render_pass_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	vkCreateRenderPass(cntx->devc, &rndrinfo, 0, &(srfc->rndr));
 }
 
-void vlx_swapchain_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
+void vlx_surface_init_swapchain(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	VkSwapchainKHR swap_anc = srfc->swap;
 	VkSwapchainCreateInfoKHR swapinfo;
 		swapinfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -310,7 +309,7 @@ void vlx_swapchain_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	}
 }
 
-void vlx_depth_buffer_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
+void vlx_surface_init_depth_buffer(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	VkImageCreateInfo imginfo;
 		imginfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imginfo.pNext = 0;
@@ -565,7 +564,7 @@ struct vlx_pipeline* vlx_pipeline_create(struct vlx_context* cntx, struct vlx_su
 	return pipe;
 }
 
-void vlx_frame_buffer_init(struct vlx_context* cntx, struct vlx_surface* srfc) {
+void vlx_surface_init_frame_buffer(struct vlx_context* cntx, struct vlx_surface* srfc) {
 	VkImageView atch[2];
 	atch[1] = srfc->dpth.v;
 	VkFramebufferCreateInfo fbfrinfo;
@@ -974,11 +973,11 @@ void vlx_dsecriptor_write(struct vlx_context* cntx, struct vlx_descriptor* dscr,
 	vkUpdateDescriptorSets(cntx->devc, n, writ, 0, 0);
 }
 
-void vlx_surface_clear(struct vlx_surface* srfc, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+void vlx_surface_clear(struct vlx_surface* srfc, uint8_t r, uint8_t g, uint8_t b) {
 	srfc->clr[0].color.float32[0] = (float) r / 255;
 	srfc->clr[0].color.float32[1] = (float) g / 255;
 	srfc->clr[0].color.float32[2] = (float) b / 255;
-	srfc->clr[0].color.float32[3] = (float) a / 255;
+	srfc->clr[0].color.float32[3] = (float) 1;
 	srfc->clr[1].depthStencil.depth = 1.f;
 	srfc->clr[1].depthStencil.stencil = 0;
 }
@@ -1120,9 +1119,9 @@ void vlx_surface_resize(struct vlx_context* cntx, struct vlx_surface* srfc, uint
 	srfc->w = w;
 	srfc->h = h;
 	
-	vlx_swapchain_init(cntx, srfc);
-	vlx_depth_buffer_init(cntx, srfc);
-	vlx_frame_buffer_init(cntx, srfc);
+	vlx_surface_init_swapchain(cntx, srfc);
+	vlx_surface_init_depth_buffer(cntx, srfc);
+	vlx_surface_init_frame_buffer(cntx, srfc);
 }
 
 void vlx_buffer_destroy(struct vlx_context* cntx, struct vlx_buffer* bfr) {
